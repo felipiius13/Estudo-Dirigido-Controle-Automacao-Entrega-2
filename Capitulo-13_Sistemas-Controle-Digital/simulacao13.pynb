@@ -1,0 +1,41 @@
+# Título: Simulação Capítulo 13 - Discretização de Sistemas
+import control as ct
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Planta Contínua: G(s) = 1 / (s + 1)
+G_s = ct.tf([1], [1, 1])
+
+# Vamos discretizar o sistema com diferentes tempos de amostragem (Ts)
+# Ts1 = 0.2s (Rápido o suficiente)
+# Ts2 = 2.5s (Muito lento - perda de informação)
+Ts1 = 0.2
+Ts2 = 2.5
+
+# Converter para Digital (Método ZOH - Zero Order Hold)
+G_z1 = ct.sample_system(G_s, Ts1, method='zoh')
+G_z2 = ct.sample_system(G_s, Ts2, method='zoh')
+
+# Simulação da resposta ao degrau
+# Para o sistema contínuo
+t_cont = np.linspace(0, 10, 100)
+_, y_cont = ct.step_response(G_s, t_cont)
+
+# Para os digitais
+t_z1, y_z1 = ct.step_response(G_z1, T=10) # T define o tempo final
+t_z2, y_z2 = ct.step_response(G_z2, T=10)
+
+plt.figure(figsize=(10, 6))
+plt.plot(t_cont, y_cont, 'k-', alpha=0.5, linewidth=3, label='Contínuo (Real)')
+plt.step(t_z1, y_z1, 'b-o', where='post', label=f'Digital Rápido (Ts={Ts1}s)')
+plt.step(t_z2, y_z2, 'r-s', where='post', label=f'Digital Lento (Ts={Ts2}s)')
+
+plt.title('Efeito do Tempo de Amostragem no Controle Digital')
+plt.xlabel('Tempo (s)')
+plt.ylabel('Amplitude')
+plt.legend()
+plt.grid()
+plt.show()
+
+print("Note como o Digital Rápido segue bem a curva preta.")
+print("O Digital Lento demora muito para atualizar, criando uma resposta 'quadrada' e imprecisa.")
